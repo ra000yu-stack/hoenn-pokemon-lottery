@@ -1,0 +1,262 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>ルビサファ ポケモン共有抽選会</title>
+<style>
+:root{color-scheme:dark;--bg:#101827;--panel:#1b2940;--accent:#72d6c9;--muted:#aab8ca}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at top,#263c58,#101827 58%);color:#f6f8fb;font-family:system-ui,-apple-system,"Noto Sans JP",sans-serif;min-height:100vh}
+main{max-width:1100px;margin:auto;padding:28px 16px 60px}.top{text-align:center}.tag{color:var(--accent);font-weight:700;letter-spacing:.12em;font-size:.78rem}
+h1{font-size:clamp(1.6rem,5vw,2.5rem);margin:8px 0}.sub{color:var(--muted);margin:0 0 22px}
+.panel{background:#1b2940ef;border:1px solid #ffffff20;border-radius:22px;padding:20px;box-shadow:0 16px 50px #0004}
+.result{display:grid;place-items:center;text-align:center;min-height:290px;background:linear-gradient(145deg,#263c58,#172337);border-radius:18px;padding:18px}
+.result.rolling .poke{animation:rollPulse .12s ease-in-out infinite alternate}.result.rolling .number{color:#fff;text-shadow:0 0 12px var(--accent)}
+@keyframes rollPulse{from{transform:scale(.96);opacity:.72}to{transform:scale(1.04);opacity:1}}
+@media(prefers-reduced-motion:reduce){.result.rolling .poke{animation:none}}
+.number{color:var(--accent);font-size:1rem;font-weight:700}.poke{font-size:2rem;font-weight:800;margin:5px 0}.dex{color:var(--muted);font-size:.9rem}
+.sprite{width:150px;height:150px;object-fit:contain;filter:drop-shadow(0 8px 8px #0005)}
+button{border:0;border-radius:14px;padding:13px 16px;font-size:.95rem;font-weight:800;cursor:pointer}
+button:disabled{opacity:.42;cursor:not-allowed}
+.draw{background:var(--accent);color:#10202a;width:100%;margin-top:16px;font-size:1.05rem;padding:16px}
+.actions{display:flex;gap:10px;margin-top:12px}.actions button{flex:1;background:#34445d;color:white}
+.stats{display:flex;justify-content:space-between;gap:10px;color:var(--muted);font-size:.9rem;margin:16px 2px}
+h2{font-size:1.1rem;margin:25px 0 12px}
+.party-head{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-top:24px}
+.party-head h2{margin:0}.player-label{font-size:.82rem;color:var(--muted);text-align:right}
+.party-grid{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:8px;margin-top:12px;min-width:0}.party-scroll{overflow:visible;padding-bottom:0}.all-parties{display:grid;gap:16px;margin-top:12px}.other-player{background:#18263a;border:1px solid #ffffff18;border-radius:15px;padding:12px;min-width:0}.other-player-head{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:8px;font-weight:800}.other-player-head small{font-weight:500;color:var(--muted)}.party-grid.readonly{margin-top:0;min-width:0;grid-template-columns:repeat(6,minmax(0,1fr));gap:5px}.party-grid.readonly .party-slot{min-height:112px;padding:6px 3px;border-radius:10px}.party-grid.readonly img{width:clamp(24px,4vw,58px);height:clamp(24px,4vw,58px);max-width:100%}.party-grid.readonly .slot-name{font-size:clamp(.58rem,.9vw,.8rem);line-height:1.15}.party-grid.readonly .slot-num{font-size:clamp(.48rem,.7vw,.65rem)}
+.party-slot{min-width:0;min-height:145px;border:1px solid #ffffff22;border-radius:15px;background:linear-gradient(145deg,#263b55,#1a2940);padding:9px 7px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;overflow:hidden}
+.party-slot.empty-slot{border-style:dashed;color:#8fa1b8;background:#18263a}
+.party-slot img{width:82px;height:82px;object-fit:contain;filter:drop-shadow(0 5px 5px #0005)}
+.slot-name{font-weight:800;font-size:.92rem;margin:1px 0 5px;overflow-wrap:anywhere}
+.slot-num{font-size:.72rem;color:var(--muted)}
+.badges{display:flex;flex-wrap:wrap;justify-content:center;gap:4px;margin:4px 0}
+.mini-badge{font-size:.65rem;font-weight:800;border-radius:999px;padding:3px 6px;background:#53647a;color:white}
+.mini-badge.ruby{background:#b84b55}.mini-badge.sapphire{background:#347ac1}.mini-badge.postgame{background:#8b6ac0}
+.reroll{width:100%;padding:7px 5px;margin-top:6px;background:#405675;color:#fff;font-size:.72rem;border-radius:9px}
+.party-actions{display:flex;gap:10px;margin-top:12px}.party-actions button{flex:1;background:#34445d;color:white}
+.party-actions .clear{background:#71434b}
+.history{display:flex;flex-wrap:wrap;gap:8px}.chip{background:#30415b;border:1px solid #ffffff18;border-radius:999px;padding:7px 11px;font-size:.82rem}
+.empty{color:var(--muted)}.status{font-size:.85rem;color:var(--muted);text-align:center;margin-top:14px}.error{color:#ffb4a9}
+.notice{font-size:.82rem;line-height:1.65;color:var(--muted);margin-top:20px}
+@media(max-width:480px){main{padding:20px 8px 44px}.panel{padding:14px}.result{min-height:260px}.sprite{width:130px;height:130px}.poke{font-size:1.7rem}.party-grid{gap:4px}.party-slot{min-height:100px;padding:5px 2px;border-radius:9px}.party-slot img{width:clamp(28px,9vw,48px);height:clamp(28px,9vw,48px);max-width:100%}.slot-name{font-size:clamp(.52rem,2.2vw,.7rem);line-height:1.05;margin:2px 0;overflow-wrap:anywhere}.slot-num{font-size:.5rem}.party-slot .badges{gap:1px;margin:2px 0}.party-slot .mini-badge{font-size:.38rem;padding:1px 2px}.party-slot .reroll{font-size:.48rem;padding:4px 1px;margin-top:3px;border-radius:6px;line-height:1.1}.other-player{padding:9px}.all-parties{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.other-player{padding:8px;overflow:hidden}.other-player-head{font-size:.82rem}.party-grid.readonly{gap:3px}.party-grid.readonly .party-slot{min-height:88px;padding:4px 1px}.party-grid.readonly img{width:100%;height:34px;max-width:34px}.party-grid.readonly .slot-name{font-size:.53rem;line-height:1.05}.party-grid.readonly .slot-num{font-size:.48rem}.party-grid.readonly .badges{gap:1px;margin:2px 0}.party-grid.readonly .mini-badge{font-size:.37rem;padding:1px 2px}}@media(max-width:360px){.party-grid{gap:2px}.party-slot{min-height:90px;padding:3px 1px}.party-slot img{width:30px;height:30px}.slot-name{font-size:.48rem}.party-slot .reroll{font-size:.42rem}.all-parties{gap:6px}.other-player{padding:5px}.party-grid.readonly .party-slot{min-height:78px}.party-grid.readonly img{height:28px;max-width:28px}.party-grid.readonly .slot-name{font-size:.46rem}}
+</style></head>
+<body><main>
+<header class="top"><div class="tag">HOENN · NATIONAL DEX 252–386</div><h1>ルビサファ ポケモン共有抽選会</h1><p class="sub">みんなで同じ抽選結果を楽しもう！</p></header>
+<section class="panel">
+ <div class="result" id="result"><div class="number" id="number">抽選待ち</div><img class="sprite" id="sprite" alt="" hidden><div class="poke" id="name">？？？</div><div class="dex" id="dex">ボタンを押して抽選！</div><div class="badges" id="resultBadges"></div></div>
+ <button class="draw" id="draw">🎲 抽選する！</button>
+ <div class="actions"><button id="reset">全員の抽選履歴をリセット</button></div>
+ <div class="stats"><span id="count">抽選回数：0回</span><span id="status">接続中…</span></div>
+
+ <div class="party-head"><h2>自分のパーティ</h2><div class="player-label" id="playerLabel">プレイヤー確認中…</div></div>
+ <div class="party-scroll"><div class="party-grid" id="party"></div></div>
+ <div class="party-actions"><button class="clear" id="partyReset">6匹をまとめてリセット</button></div>
+ <h2>みんなのパーティ（2人ずつ横並び）</h2><div class="all-parties" id="allParties"><span class="empty">プレイヤーを読み込み中…</span></div>
+
+ <h2>みんなの抽選履歴</h2><div class="history" id="history"><span class="empty">まだ抽選されていません</span></div>
+</section>
+<p class="notice">※抽選履歴は全員で共有されます。パーティはこのブラウザ・端末ごとに別々に保存されます。同じブラウザで再訪すると同じプレイヤーとして扱われます。ブラウザのデータを消去すると別プレイヤーになる場合があります。共有URLを知っている人は誰でも操作できるため、友達だけで使うURLとして扱ってください。</p>
+</main>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
+<script>
+const firebaseConfig = {
+  apiKey: "AIzaSyDlVEMdmL21KfOz-LH1rzyxEo3Kv_iZjvQ",
+  authDomain: "hoenn-pokemon-lottery.firebaseapp.com",
+  databaseURL: "https://hoenn-pokemon-lottery-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId: "hoenn-pokemon-lottery",
+  storageBucket: "hoenn-pokemon-lottery.firebasestorage.app",
+  messagingSenderId: "637178079778",
+  appId: "1:637178079778:web:43e497b6ad1cf4d7f7387b"
+};
+const names = ["キモリ", "ジュプトル", "ジュカイン", "アチャモ", "ワカシャモ", "バシャーモ", "ミズゴロウ", "ヌマクロー", "ラグラージ", "ポチエナ", "グラエナ", "ジグザグマ", "マッスグマ", "ケムッソ", "カラサリス", "アゲハント", "マユルド", "ドクケイル", "ハスボー", "ハスブレロ", "ルンパッパ", "タネボー", "コノハナ", "ダーテング", "スバメ", "オオスバメ", "キャモメ", "ペリッパー", "ラルトス", "キルリア", "サーナイト", "アメタマ", "アメモース", "キノココ", "キノガッサ", "ナマケロ", "ヤルキモノ", "ケッキング", "ツチニン", "テッカニン", "ヌケニン", "ゴニョニョ", "ドゴーム", "バクオング", "マクノシタ", "ハリテヤマ", "ルリリ", "ノズパス", "エネコ", "エネコロロ", "ヤミラミ", "クチート", "ココドラ", "コドラ", "ボスゴドラ", "アサナン", "チャーレム", "ラクライ", "ライボルト", "プラスル", "マイナン", "バルビート", "イルミーゼ", "ロゼリア", "ゴクリン", "マルノーム", "キバニア", "サメハダー", "ホエルコ", "ホエルオー", "ドンメル", "バクーダ", "コータス", "バネブー", "ブーピッグ", "パッチール", "ナックラー", "ビブラーバ", "フライゴン", "サボネア", "ノクタス", "チルット", "チルタリス", "ザングース", "ハブネーク", "ルナトーン", "ソルロック", "ドジョッチ", "ナマズン", "ヘイガニ", "シザリガー", "ヤジロン", "ネンドール", "リリーラ", "ユレイドル", "アノプス", "アーマルド", "ヒンバス", "ミロカロス", "ポワルン", "カクレオン", "カゲボウズ", "ジュペッタ", "ヨマワル", "サマヨール", "トロピウス", "チリーン", "アブソル", "ソーナノ", "ユキワラシ", "オニゴーリ", "タマザラシ", "トドグラー", "トドゼルガ", "パールル", "ハンテール", "サクラビス", "ジーランス", "ラブカス", "タツベイ", "コモルー", "ボーマンダ", "ダンバル", "メタング", "メタグロス", "レジロック", "レジアイス", "レジスチル", "ラティアス", "ラティオス", "カイオーガ", "グラードン", "レックウザ", "ジラーチ", "デオキシス"];
+
+const $ = id => document.getElementById(id);
+let db, stateRef, isRolling=false, latestState=null;
+const PLAYER_KEY="hoenn-lottery-player-v1";
+function makePlayerId(){
+ try{if(crypto.randomUUID)return crypto.randomUUID()}catch(e){}
+ return "p-"+Date.now().toString(36)+"-"+Math.random().toString(36).slice(2);
+}
+let playerId;
+try{playerId=localStorage.getItem(PLAYER_KEY);if(!playerId){playerId=makePlayerId();localStorage.setItem(PLAYER_KEY,playerId)}}catch(e){playerId=makePlayerId()}
+$("playerLabel").textContent="あなた："+playerId.slice(-6);
+const rubyOnly=new Set([273,274,275,303,335,338,380,383]);
+const sapphireOnly=new Set([270,271,272,302,336,337,381,382]);
+const postgameOnly=new Set([374,375,376,380,381]);
+function badgesFor(dex){
+ const out=[];
+ if(rubyOnly.has(dex))out.push({text:"ルビー限定",cls:"ruby"});
+ if(sapphireOnly.has(dex))out.push({text:"サファイア限定",cls:"sapphire"});
+ if(postgameOnly.has(dex))out.push({text:"クリア後限定",cls:"postgame"});
+ return out;
+}
+function addBadges(target,dex){
+ target.replaceChildren();
+ badgesFor(dex).forEach(b=>{const el=document.createElement("span");el.className="mini-badge "+b.cls;el.textContent=b.text;target.append(el)});
+}
+function getParty(state){
+ const p=state?.players?.[playerId]?.party;
+ return Array.isArray(p)?p:[];
+}
+function imageUrl(n){return `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${n+251}.png`}
+function renderResult(item){
+ if(item){
+  const n=item.n;
+  $("number").textContent=`抽選番号 ${String(n).padStart(3,"0")}`;
+  $("name").textContent=names[n-1]||"？？？";
+  $("dex").textContent=`全国図鑑 No.${n+251}`;
+  $("sprite").src=imageUrl(n);$("sprite").alt=names[n-1]||"";$("sprite").hidden=false;
+  addBadges($("resultBadges"),n+251);
+ }else{
+  $("number").textContent="抽選待ち";$("name").textContent="？？？";$("dex").textContent="ボタンを押して抽選！";$("sprite").hidden=true;$("resultBadges").replaceChildren();
+ }
+}
+function makePartySlot(pokemon,index,interactive=false){
+ const slot=document.createElement("div");slot.className="party-slot"+(pokemon?"":" empty-slot");
+ if(pokemon){
+  const n=pokemon.n;
+  const img=document.createElement("img");img.src=imageUrl(n);img.alt=names[n-1]||"";img.loading="lazy";slot.append(img);
+  const name=document.createElement("div");name.className="slot-name";name.textContent=names[n-1]||"？？？";slot.append(name);
+  const num=document.createElement("div");num.className="slot-num";num.textContent=`No.${n+251}`;slot.append(num);
+  const badges=document.createElement("div");badges.className="badges";badgesFor(n+251).forEach(b=>{const el=document.createElement("span");el.className="mini-badge "+b.cls;el.textContent=b.text;badges.append(el)});slot.append(badges);
+  if(interactive){const reroll=document.createElement("button");reroll.className="reroll";reroll.textContent="引き直す";reroll.disabled=isRolling;reroll.addEventListener("click",()=>rerollSlot(index));slot.append(reroll)}
+ }else{
+  const empty=document.createElement("div");empty.style.fontSize="1.5rem";empty.textContent="＋";slot.append(empty);
+  const label=document.createElement("div");label.textContent=`${index+1}匹目`;label.style.fontSize=".76rem";slot.append(label);
+  const waiting=document.createElement("div");waiting.textContent="空き";waiting.style.fontSize=".68rem";waiting.style.marginTop="3px";slot.append(waiting);
+ }
+ return slot;
+}
+function renderParty(state){
+ const party=getParty(state), box=$("party");box.replaceChildren();
+ for(let i=0;i<6;i++)box.append(makePartySlot(party[i],i,true));
+ $("partyReset").disabled=isRolling||party.length===0;
+ $("draw").disabled=isRolling||party.length>=6;
+ $("draw").textContent=party.length>=6?"🎉 パーティ完成！（6/6）":`🎲 抽選する！（${party.length}/6）`;
+}
+function renderAllParties(state){
+ const box=$("allParties");box.replaceChildren();
+ const players=state?.players||{};
+ const ids=Object.keys(players).sort((a,b)=>a===playerId?-1:b===playerId?1:a.localeCompare(b));
+ if(!ids.length){const empty=document.createElement("span");empty.className="empty";empty.textContent="まだ参加プレイヤーがいません";box.append(empty);return}
+ ids.forEach((id)=>{
+  const data=players[id]||{},party=Array.isArray(data.party)?data.party:[];
+  const card=document.createElement("section");card.className="other-player";
+  const head=document.createElement("div");head.className="other-player-head";
+  const label=document.createElement("span");label.textContent=id===playerId?`あなた（${id.slice(-6)}）`:`プレイヤー ${id.slice(-6)}`;head.append(label);
+  const count=document.createElement("small");count.textContent=`${party.length}/6匹`;head.append(count);card.append(head);
+  const scroll=document.createElement("div");scroll.className="party-scroll";
+  const grid=document.createElement("div");grid.className="party-grid readonly";
+  for(let i=0;i<6;i++)grid.append(makePartySlot(party[i],i,false));
+  scroll.append(grid);card.append(scroll);box.append(card);
+ });
+}
+function renderHistory(history){
+ const box=$("history");box.replaceChildren();
+ if(!history.length){const e=document.createElement("span");e.className="empty";e.textContent="まだ抽選されていません";box.append(e);return}
+ history.slice().reverse().forEach((item,i)=>{
+  const chip=document.createElement("span");chip.className="chip";
+  const label=item.action==="reroll"?"引き直し":"抽選";
+  chip.textContent=`${history.length-i}. ${names[item.n-1]||"？？？"}（${item.n+251}）${item.action==="reroll"?" ↻":""}`;
+  chip.title=`${label}${item.playerId===playerId?"・あなた":""}`;
+  box.append(chip);
+ });
+}
+function render(state){
+ latestState=state||{history:[],players:{}};
+ if(isRolling)return;
+ const history=latestState.history||[];
+ $("count").textContent=`抽選回数：${history.filter(item=>item.action!=="reroll").length}回`;
+ renderResult(history[history.length-1]);
+ renderParty(latestState);
+ renderAllParties(latestState);
+ renderHistory(history);
+}
+function setStatus(s,bad=false){$("status").textContent=s;$("status").className=bad?"error":""}
+function rollAnimation(duration=1750){
+ isRolling=true;$("draw").disabled=true;$("result").classList.add("rolling");
+ const started=Date.now();
+ return new Promise(resolve=>{
+  const tick=()=>{
+   const n=Math.floor(Math.random()*135)+1;
+   $("number").textContent=`抽選中… ${String(n).padStart(3,"0")}`;
+   $("name").textContent=names[n-1];$("dex").textContent="ドラムロール中…";$("sprite").hidden=true;$("resultBadges").replaceChildren();
+   if(Date.now()-started<duration)setTimeout(tick,75);else resolve();
+  };tick();
+ });
+}
+async function finishAction(snapshot){
+ isRolling=false;$("result").classList.remove("rolling");
+ render(snapshot||latestState);
+}
+async function drawPokemon(){
+ if(isRolling||getParty(latestState).length>=6)return;
+ await rollAnimation(1750);
+ try{
+  const result=await stateRef.transaction(current=>{
+   current=current||{history:[],players:{}};
+   current.history=current.history||[];current.players=current.players||{};
+   const player=current.players[playerId]||{party:[]};
+   player.party=Array.isArray(player.party)?player.party:[];
+   if(player.party.length>=6)return;
+   const n=Math.floor(Math.random()*135)+1;
+   player.party.push({n,at:Date.now()});
+   current.players[playerId]=player;
+   current.history.push({n,at:Date.now(),playerId,action:"draw"});
+   return current;
+  });
+  if(!result.committed){await finishAction(result.snapshot.val()||latestState);setStatus("パーティは6匹そろっています");return}
+  await finishAction(result.snapshot.val());
+ }catch(e){await finishAction(latestState);setStatus("抽選失敗："+e.message,true)}
+}
+async function rerollSlot(index){
+ if(isRolling)return;
+ const currentParty=getParty(latestState);
+ if(!currentParty[index])return;
+ if(!confirm(`${index+1}匹目のポケモンを引き直します。元のポケモンは入れ替わります。よろしいですか？`))return;
+ await rollAnimation(1450);
+ try{
+  const result=await stateRef.transaction(current=>{
+   current=current||{history:[],players:{}};
+   current.history=current.history||[];current.players=current.players||{};
+   const player=current.players[playerId]||{party:[]};player.party=Array.isArray(player.party)?player.party:[];
+   if(!player.party[index])return;
+   const n=Math.floor(Math.random()*135)+1;
+   player.party[index]={n,at:Date.now()};
+   current.players[playerId]=player;
+   current.history.push({n,at:Date.now(),playerId,action:"reroll",slot:index});
+   return current;
+  });
+  if(!result.committed){await finishAction(result.snapshot.val()||latestState);setStatus("引き直しできませんでした",true);return}
+  await finishAction(result.snapshot.val());
+ }catch(e){await finishAction(latestState);setStatus("引き直し失敗："+e.message,true)}
+}
+async function resetMyParty(){
+ if(isRolling)return;
+ if(!confirm("自分のパーティ6匹をすべてリセットします。抽選履歴や他の人のパーティは残ります。よろしいですか？"))return;
+ try{
+  const result=await stateRef.transaction(current=>{
+   current=current||{history:[],players:{}};
+   current.players=current.players||{};
+   current.players[playerId]=current.players[playerId]||{party:[]};
+   current.players[playerId].party=[];
+   return current;
+  });
+  if(result.committed)render(result.snapshot.val());
+ }catch(e){setStatus("パーティのリセット失敗："+e.message,true)}
+}
+function ready(){
+ try{
+  if(Object.values(firebaseConfig).some(v=>String(v).startsWith("ここに"))){setStatus("Firebase設定が必要です",true);$("draw").disabled=true;return}
+  firebase.initializeApp(firebaseConfig);db=firebase.database();stateRef=db.ref("rooms/hoenn-shared/state");
+  db.ref(".info/connected").on("value",s=>setStatus(s.val()?"オンライン共有中":"再接続中…"));
+  stateRef.on("value",s=>render(s.val()),e=>setStatus("読み込みエラー："+e.message,true));
+  stateRef.transaction(current=>{current=current||{history:[],players:{}};current.history=current.history||[];current.players=current.players||{};if(!current.players[playerId])current.players[playerId]={party:[]};return current;});
+  $("draw").addEventListener("click",drawPokemon);
+  $("partyReset").addEventListener("click",resetMyParty);
+  $("reset")?.addEventListener("click",async()=>{if(!confirm("全員の抽選履歴をリセットします。よろしいですか？"))return;try{await stateRef.set({history:[],players:latestState?.players||{}})}catch(e){setStatus("履歴リセット失敗："+e.message,true)}});
+ }catch(e){setStatus("初期化エラー："+e.message,true)}
+}
+ready();
+</script></body></html>
